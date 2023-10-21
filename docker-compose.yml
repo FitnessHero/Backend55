@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+    fams_database:
+      container_name: fams_database_container
+      image: mysql/mysql-server
+      restart: unless-stopped
+      ports:
+        - "3306:3306"
+      volumes:
+        - fams_database_container_volume:/var/lib/mysql
+        - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+        - ./etc/mysql/my.cnf:/etc/mysql/my.cnf
+      env_file:
+        - famsSQL.env
+
+
+volumes:
+  fams_database_container_volume:
