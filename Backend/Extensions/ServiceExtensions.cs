@@ -3,7 +3,7 @@ using Entities;
 using Microsoft.EntityFrameworkCore;
 using Repository;
 
-namespace Fams_Backend.Extensions
+namespace Backend.Extensions
 {
     public static class ServiceExtensions
     {

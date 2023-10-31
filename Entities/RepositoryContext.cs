@@ -10,5 +10,9 @@ namespace Entities
         {
         }
         public DbSet<User>? Users { get; set; }
-    }
+		public DbSet<FoodDiary>? CalorieCounters { get; set; }
+		public DbSet<Food>? Foods { get; set; }
+		public DbSet<Nutrient>? FoodItems { get; set; }
+        
+	}
 }

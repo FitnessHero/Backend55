@@ -16,8 +16,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using PwnedPasswords.Validator;
 using PwnedPasswords.Client;
+using System.Net;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
-namespace Fams_Backend.Controllers.Auth
+namespace Backend.Controllers.Auth
 {
 	[ApiController]
 	[Route("[controller]")]
@@ -46,9 +49,9 @@ namespace Fams_Backend.Controllers.Auth
 			var users = _repository.User.FindByCondition(user => user.Email == register.Email);
 			if (users.Count() != 0)
 				return UnprocessableEntity(new JsonResult("User already exists"));
-			var isValid = await ValidatePassword(register.Password, new List<string> { register.UserName, register.Email});
+			var isValid = await ValidatePassword(register.Password, new List<string> { register.FirstName, register.LastName, register.Email});
 			if (isValid.Item1 == false)
-				return new JsonResult(isValid.Item2);
+				return StatusCode((int)HttpStatusCode.UnprocessableEntity, isValid.Item2);
 
 			byte[] hash, salt;
 			CreatePasswordHash(register.Password, out hash, out salt);
@@ -56,10 +59,12 @@ namespace Fams_Backend.Controllers.Auth
 			_repository.User.Create(new Entities.Models.Database.User()
 			{
 				Email = register.Email,
-				UserName = register.UserName,
+				FirstName = register.FirstName,
+				LastName = register.LastName,
 				Password = hash,
 				PasswordSalt = salt,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = DateTime.UtcNow,
+				Uuid = Guid.NewGuid().ToString()
 			});
 			_repository.Save();
 			return Ok();
@@ -77,56 +82,37 @@ namespace Fams_Backend.Controllers.Auth
 				var users = _repository.User.FindByCondition(user => user!.Email == login.Email);
 
 				if (users.Count() != 1)
-					return Unauthorized();
+					return Unauthorized("Either the username or password was incorrect.");
 				User currentUser = users.First();
 
 				if (!VerifyPassword(login.Password, currentUser.Password, currentUser.PasswordSalt))
-					return Unauthorized();
+					return Unauthorized("Either the username or password was incorrect.");
 
-				string? issuer = _iconfiguration["Jwt:Issuer"];
-				string? audience = _iconfiguration["Jwt:Audience"];
-				byte[] secretKey = Encoding.UTF8.GetBytes(_iconfiguration["Jwt:Key"]);
-
-				var signingCredentials = new SigningCredentials(
-					new SymmetricSecurityKey(secretKey),
-					SecurityAlgorithms.HmacSha512Signature
-				);
-
-				var subject = new ClaimsIdentity(new[]
+				var claims = new Claim[]
 				{
-					new Claim(JwtRegisteredClaimNames.Sub, currentUser.UserName),
-					new Claim(JwtRegisteredClaimNames.Sub, currentUser.UserName)
-				});
-
-				var expires = DateTime.UtcNow.AddHours(24);
-
-				var tokenDescriptor = new SecurityTokenDescriptor
-				{
-					Subject = subject,
-					Expires = expires,
-					Issuer = issuer,
-					Audience = audience,
-					SigningCredentials = signingCredentials
+					new Claim("Id", currentUser.Id.ToString()),
+					new Claim(ClaimTypes.Name, currentUser.Email),
 				};
-
-				var tokenHandler = new JwtSecurityTokenHandler();
-				var token = tokenHandler.CreateToken(tokenDescriptor);
-				var jwtToken = tokenHandler.WriteToken(token);
-				var auth = new Entities.Models.Response.Auth
-				{
-					Email = currentUser.Email,
-					UserName = currentUser.UserName,
-					Token = jwtToken
-				};
-				currentUser.AuthToken = jwtToken;
-				_repository.User.Update(currentUser);
-				_repository.Save();
-				return new JsonResult(auth);
+				var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+				HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity)).Wait();
+				return Ok();
 			}
 			catch (Exception)
 			{
-				return StatusCode(500, "Internal server error");
+				return StatusCode(500, "Internal server error.");
 			}
+		}
+
+		[AllowAnonymous]
+		[HttpPost]
+		[Route("/api/auth/logout")]
+		[Consumes("application/json")]
+		[Produces("application/json")]
+		[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+		public IActionResult Logout()
+		{
+			HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).Wait();
+			return Ok();
 		}
 
 		private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -147,11 +133,11 @@ namespace Fams_Backend.Controllers.Auth
 		{
 			if (string.IsNullOrEmpty(password) || Regex.Matches(password, _passwordValidityRegex).Count == 0)
 			{
-				return (false, "Your password must consist of 8 characters, digits or special characters and must contain at least 1 uppercase, 1 lowercase and 1 numeric value");
+				return (false, "Your password must consist of 8 characters, digits or special characters and must contain at least 1 uppercase, 1 lowercase and 1 numeric value.");
 			}
 			if (Regex.Matches(password, _passwordGoodEntropyRegex).Count == 0)
 			{
-				return (false, "Your password cannot repeat the same character or digit more than 3 times consecutively, please choose another");
+				return (false, "Your password cannot repeat the same character or digit more than 3 times consecutively, please choose another.");
 			}
 			//var badPassword = _context.LookupItem.FirstOrDefault(l => l.LookupTypeId == Consts.LookupTypeId.BadPassword && l.Description.ToLower() == password.ToLower());
 			//if (badPassword != null)
@@ -162,7 +148,7 @@ namespace Fams_Backend.Controllers.Auth
 			{
 				if (password.IndexOf(bannedWord, StringComparison.OrdinalIgnoreCase) >= 0)
 				{
-					return (false, "Your password cannot contain any of your personal information");
+					return (false, "Your password cannot contain any of your personal information.");
 				}
 			}
 			//if (!user.Password.IsNullOrEmpty() && !user.PasswordSalt.IsNullOrEmpty())
@@ -188,7 +174,7 @@ namespace Fams_Backend.Controllers.Auth
 			var isPwned = await _pwnedPasswordsClient.HasPasswordBeenPwned(password);
 			if (isPwned)
 			{
-				return (false, "Your password has previously been found in a data breach, please choose another");
+				return (false, "Your password has previously been found in a data breach, please choose another.");
 			}
 			return (true, string.Empty);
 		}

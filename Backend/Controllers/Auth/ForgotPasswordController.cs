@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 
-namespace Fams_Backend.Controllers.Auth
+namespace Backend.Controllers.Auth
 {
     [ApiController]
     [Route("[controller]")]

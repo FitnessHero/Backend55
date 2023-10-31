@@ -8,27 +8,23 @@ using System.Threading.Tasks;
 
 namespace Entities.Models.Database
 {
-    public class Calorie
+	[Table("nutrient")]
+	public class Nutrient
     {
         [Column("id")]
         [Key]
         public int Id { get; set; }
 
-        [Column("name")]
-        [Required(ErrorMessage = "Name field is required")]
-        [StringLength(64, ErrorMessage = "Name must be 64 characters")]
-        public string? Name { get; set; }
-
-        [Column("protein")]
+        [Column("proteins")]
         [Required(ErrorMessage = "Protein field is required")]
-        public float? Protein { get; set; }
+        public float? Proteins { get; set; }
 
         [Column("carbohydrates")]
         [Required(ErrorMessage = "Carbohydrates field is required")]
         public float? Carbohydrates { get; set; }
 
-        [Column("fat")]
+        [Column("fats")]
         [Required(ErrorMessage = "Fat field is required")]
-        public float? Fat { get; set; }
+        public float? Fats { get; set; }
     }
 }

@@ -3,13 +3,23 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Entities.Models.Database
 {
-    public class CalorieCounter
+	[Table("food_diary")]
+	public class FoodDiary
     {
         [Column("id")]
         [Key]
         public int Id { get; set; }
 
-        [Column("user_id")]
+		[Column("meal")]
+		[Required(ErrorMessage = "Meal field is required")]
+		[StringLength(64, ErrorMessage = "Meal must be 64 characters")]
+		public string? Meal { get; set; }
+
+		[Column("grams")]
+		[Required(ErrorMessage = "Grams field is required")]
+		public int? Grams { get; set; }
+
+		[Column("user_id")]
         [Required(ErrorMessage = "UserId field is required")]
         [ForeignKey("User")]
         public int? UserId { get; set; }

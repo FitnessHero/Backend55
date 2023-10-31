@@ -10,8 +10,8 @@ namespace Contracts
     {
         IUserRepository User { get; }
         IFoodRepository Food { get; }
-        ICalorieCounterRepository CalorieCounter { get; }
-        ICalorieRepository Calorie { get; }
+        IFoodDiaryRepository FoodDiary { get; }
+        INutrientRepository Nutrient { get; }
         void Save();
-    }
+	}
 }

@@ -10,11 +10,11 @@ namespace Repository
 {
     public class RepositoryWrapper : IRepositoryWrapper
     {
-        private RepositoryContext _repoContext;
+		private RepositoryContext _repoContext;
         private IUserRepository _user;
         private IFoodRepository _food;
-        private ICalorieCounterRepository _calorieCounter;
-        private ICalorieRepository _calorie;
+        private IFoodDiaryRepository _foodDiary;
+        private INutrientRepository _calorie;
         
         public IUserRepository User
         {
@@ -39,38 +39,51 @@ namespace Repository
             }
         }
 
-        public ICalorieCounterRepository CalorieCounter
+        public IFoodDiaryRepository CalorieCounter
         {
             get
             {
-                if (_calorieCounter == null)
+                if (_foodDiary == null)
                 {
-                    _calorieCounter = new CalorieCounterRepository(_repoContext);
+                    _foodDiary = new FoodDiaryRepository(_repoContext);
                 }
-                return _calorieCounter;
+                return _foodDiary;
             }
         }
 
-        public ICalorieRepository Calorie
-        {
+        public INutrientRepository Nutrient
+		{
             get
             {
                 if (_calorie == null)
                 {
-                    _calorie = new CalorieRepository(_repoContext);
+                    _calorie = new NutrientRepository(_repoContext);
                 }
                 return _calorie;
             }
         }
 
-        public RepositoryWrapper(RepositoryContext repositoryContext)
+		public IFoodDiaryRepository FoodDiary
+        {
+			get
+			{
+				if (_foodDiary == null)
+				{
+					_foodDiary = new FoodDiaryRepository(_repoContext);
+				}
+				return _foodDiary;
+			}
+		}
+
+
+		public RepositoryWrapper(RepositoryContext repositoryContext)
         {
             _repoContext = repositoryContext;
-        }
+		}
 
         public void Save()
         {
             _repoContext.SaveChanges();
         }
-    }
+	}
 }

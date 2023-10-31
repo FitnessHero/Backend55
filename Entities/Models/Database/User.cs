@@ -9,17 +9,27 @@ namespace Entities.Models.Database
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("email")]
+        [Column("uuid")]
+		[Required(ErrorMessage = "Uuid is required")]
+		[StringLength(36, ErrorMessage = "Uuid can't be longer than 36 characters")]
+		public string? Uuid { get; set; }
+
+		[Column("email")]
         [Required(ErrorMessage = "Email is required")]
         [StringLength(128, ErrorMessage = "Email can't be longer than 128 characters")]
         public string? Email { get; set; }
 
-        [Column("username")]
-        [Required(ErrorMessage = "Name is required")]
-        [StringLength(24, ErrorMessage = "Name can't be longer than 24 characters")]
-        public string? UserName { get; set; }
+        [Column("first_name")]
+        [Required(ErrorMessage = "FirstName is required")]
+        [StringLength(24, ErrorMessage = "FirstName can't be longer than 24 characters")]
+        public string? FirstName { get; set; }
 
-        [Column("password")]
+		[Column("last_name")]
+		[Required(ErrorMessage = "LastName is required")]
+		[StringLength(24, ErrorMessage = "LastName can't be longer than 24 characters")]
+		public string? LastName { get; set; }
+
+		[Column("password")]
         [Required(ErrorMessage = "Password is required")]
         [StringLength(128, ErrorMessage = "Password can't be longer than 128 characters")]
         public byte[]? Password { get; set; }

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-    public class CalorieRepository : RepositoryBase<Calorie>, ICalorieRepository
+    public class NutrientRepository : RepositoryBase<Nutrient>, INutrientRepository
     {
-        public CalorieRepository(RepositoryContext repositoryContext)
+        public NutrientRepository(RepositoryContext repositoryContext)
             : base(repositoryContext)
         {
         }

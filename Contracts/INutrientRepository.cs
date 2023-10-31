@@ -2,7 +2,7 @@
 
 namespace Contracts
 {
-    public interface ICalorieRepository : IRepositoryBase<Calorie>
+    public interface INutrientRepository : IRepositoryBase<Nutrient>
     {
     }
 }
